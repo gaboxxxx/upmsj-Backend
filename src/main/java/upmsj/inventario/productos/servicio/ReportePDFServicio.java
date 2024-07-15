@@ -16,15 +16,16 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-@Service
+@Service // Indica que esta clase es un servicio de Spring
 public class ReportePDFServicio {
 
-    @Autowired
+    @Autowired // Inyección de dependencias para CarritoRepositorio
     private CarritoRepositorio carritoRepositorio;
 
-    @Autowired
+    @Autowired // Inyección de dependencias para ItemCarritoRepositorio
     private ItemCarritoRepositorio itemCarritoRepositorio;
 
+    // Genera un reporte PDF para un carrito dado su ID
     public ByteArrayInputStream generarReportePDF(Integer idCarrito) throws DocumentException {
         Carrito carrito = carritoRepositorio.findById(idCarrito).orElseThrow(() -> new IllegalArgumentException("Carrito no encontrado"));
         List<ItemCarrito> items = itemCarritoRepositorio.findByCarrito(carrito);
@@ -44,7 +45,7 @@ public class ReportePDFServicio {
         // Añadir un poco más de espacio antes del título
         document.add(Chunk.NEWLINE);
 
-        // Título
+        // Título del reporte
         Paragraph titulo = new Paragraph("Reporte de Donación", fontTitulo);
         titulo.setAlignment(Element.ALIGN_CENTER);
         document.add(titulo);
@@ -59,7 +60,7 @@ public class ReportePDFServicio {
         document.add(new Paragraph("Beneficiario: " + (carrito.getBeneficiario() != null ? carrito.getBeneficiario().getNombreBeneficiario() : "N/A"), fontNormal));
         document.add(Chunk.NEWLINE);
 
-        // Título de la Tabla de Items
+        // Título de la tabla de items
         Paragraph subTitulo = new Paragraph("Items en el Carrito", fontSubTitulo);
         subTitulo.setAlignment(Element.ALIGN_CENTER);
         document.add(subTitulo);
@@ -91,6 +92,7 @@ public class ReportePDFServicio {
         hcell.setBackgroundColor(BaseColor.LIGHT_GRAY);
         table.addCell(hcell);
 
+        // Agregar filas a la tabla con los items del carrito
         for (ItemCarrito item : items) {
             PdfPCell cell;
 
@@ -122,12 +124,14 @@ public class ReportePDFServicio {
         document.add(table);
         document.close();
 
-        return new ByteArrayInputStream(out.toByteArray());
+        return new ByteArrayInputStream(out.toByteArray()); // Devuelve el PDF como un ByteArrayInputStream
     }
 
+    // Clase interna para manejar el encabezado y pie de página del PDF
     class HeaderFooterPageEvent extends PdfPageEventHelper {
         @Override
         public void onEndPage(PdfWriter writer, Document document) {
+            // Encabezado del PDF
             PdfPTable header = new PdfPTable(1);
             try {
                 header.setWidths(new int[]{24});
@@ -148,6 +152,7 @@ public class ReportePDFServicio {
                 throw new ExceptionConverter(de);
             }
 
+            // Pie de página del PDF
             PdfPTable footer = new PdfPTable(1);
             try {
                 footer.setWidths(new int[]{24});
